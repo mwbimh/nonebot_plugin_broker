@@ -18,6 +18,8 @@ pip install nonebot_plugin_broker
 nb plugin install nonebot_plugin_broker
 ```
 
+***请注意：本插件依赖nonebot官方的apscheduler插件和onebot适配器***
+
 ## 简单使用
 
 本插件提供三个对外函数，`register`/`subscribe`/`remove`
