@@ -21,6 +21,7 @@ for i in range(24):
         no_check=True
     )
     publish(info=f"现在是北京时间{i}点整", to_callable=i)
+
 # ***一些没啥用的服务
 publish = register(
     name=f"每月第一天通知服务",

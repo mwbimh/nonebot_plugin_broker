@@ -1,4 +1,3 @@
-from tokenize import group
 from typing import Dict, Any, List
 
 from nonebot import on_command
@@ -29,6 +28,9 @@ regular_rm = on_command(
 
 @regular_add.handle()
 async def add(event: MessageEvent):
+    '''
+    来自外部的订阅操作接收函数
+    '''
     if _check(event):
         para = _parse(event)
         completed: List[str] = []
@@ -48,6 +50,9 @@ async def add(event: MessageEvent):
 
 @regular_rm.handle()
 async def rm(event: MessageEvent):
+    '''
+    来自外部的退订操作接收函数
+    '''
     if _check(event):
         para = _parse(event)
         completed: List[str] = []
@@ -66,7 +71,8 @@ async def rm(event: MessageEvent):
 
 
 def _check(event: MessageEvent) -> bool:
-    print(event)
+    '''
+    '''
     if isinstance(event, PrivateMessageEvent):
         return True
     elif isinstance(event, GroupMessageEvent):
@@ -76,6 +82,8 @@ def _check(event: MessageEvent) -> bool:
 
 
 def _parse(event: MessageEvent) -> Dict[str, Any]:
+    '''
+    '''
     arg = event.get_plaintext().split()
     if isinstance(event, PrivateMessageEvent):
         subscriber = event.get_user_id()

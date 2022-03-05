@@ -16,6 +16,9 @@ def register(
     hour: Union[str, int] = config.default_time,
     **kwarg
 ) -> Callable[[INFO_TYPE, Any, bool], bool]:
+    '''
+    注册topic，详见topic的构造方法
+    '''
     t: topic = find_topic(title, topics)
     if t is None:
         t = topic(title=title, hour=hour, **kwarg)
@@ -29,6 +32,9 @@ def subscribe(
     *arg,
     **kwarg
 ) -> bool:
+    '''
+    订阅topic，详见topic的subscribe方法
+    '''
     try:
         t: topic = find_topic(title, topics)
         if t is None:
@@ -45,6 +51,9 @@ def remove(
     *arg,
     **kwarg
 ) -> bool:
+    '''
+    退订topic，详见topic的remove方法
+    '''
     try:
         t: topic = find_topic(title, topics)
         if t is None:
@@ -56,6 +65,10 @@ def remove(
 
 
 def find_topic(title: Union[str, int], topics: List[topic]) -> topic:
+    '''
+    从topics中找到title对应的topic，如果是整数则直接按编号获取，
+    如果是字符串，则会先尝试匹配title，然后匹配name，最后再匹配aliases
+    '''
     if isinstance(title, int):
         if title < len(topics):
             return topics[title]

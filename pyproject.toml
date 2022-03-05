@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "nonebot_plugin_broker"
+version = "0.2.0"
+description = "a plugin for nonebot"
+authors = ["mwbimh <mwbimh@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+playwright = "^1.19.1"
+"ruamel.yaml" = "^0.17.21"
+nonebot-plugin-apscheduler = "^0.1.2"
+asyncio = "^3.4.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

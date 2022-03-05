@@ -21,6 +21,9 @@ class Config(BaseSettings):
 
 
 def load_topics() -> List[topic]:
+    '''
+    读取已保存的数据
+    '''
     try:
         t = yaml.load(TOPICS_PATH)
         if t is None:
@@ -32,6 +35,9 @@ def load_topics() -> List[topic]:
 
 
 async def save_topics(topics: List[topic]):
+    '''
+    将数据存入yml文件
+    '''
     if not TOPICS_PATH.exists():
         TOPICS_PATH.parent.mkdir(parents=True, exist_ok=True)
     _temp = []
