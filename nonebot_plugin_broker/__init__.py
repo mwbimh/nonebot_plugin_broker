@@ -6,7 +6,7 @@ from nonebot.log import logger
 
 from .topic import topic
 from .config import Config, load_topics, save_topics
-from .interface import register, subscribe, beijing2UTC
+from .interface import register, subscribe
 from . import command
 from . import internal
 
@@ -17,7 +17,7 @@ for i in range(24):
     publish = register(
         name=f"每日{i}点报时服务",
         title=f"clock{i}",
-        hour=beijing2UTC(i),
+        hour=i,
         no_check=True
     )
     publish(info=f"现在是北京时间{i}点整", to_callable=i)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot_plugin_broker"
-version = "0.2.0"
+version = "0.3.0"
 description = "a plugin for nonebot"
 authors = ["mwbimh <mwbimh@gmail.com>"]
 license = "MIT"
