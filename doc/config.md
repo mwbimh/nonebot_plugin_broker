@@ -18,6 +18,7 @@
 其中type现在可为"users"和"groups"，后跟对应类别的id
 
 下面为均为自定义指令名，类型均为列表（list），如果填写，请不要填[]
+
 `broker_command_add`: 自定义订阅指令名，默认值为["订阅"]
 
 `broker_command_rm`: 自定义退订指令名，默认值为["退订"]
