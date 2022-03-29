@@ -9,7 +9,7 @@ driver = nonebot.get_driver()
 
 @driver.on_startup
 async def a():
-    subscribe(config.store_time, subscriber=store)
+    subscribe(config.broker_store_time, subscriber=store)
 
 
 @driver.on_shutdown

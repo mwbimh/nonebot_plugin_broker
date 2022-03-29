@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Dict
 from pydantic import BaseSettings
 from ruamel.yaml import YAML
 from pathlib import Path
@@ -13,8 +13,30 @@ yaml = YAML()
 
 
 class Config(BaseSettings):
-    default_time: Union[int, str] = 8
-    store_time: Union[int, str] = 0
+    broker_default_time: Union[int, str] = 8
+    broker_store_time: Union[int, str] = 0
+    broker_admin: Dict[str, List[Union[str, int]]] = {}
+    broker_command_add: list = ["订阅"]
+    broker_command_rm: list = ["退订"]
+    broker_command_ls: list = ["清单"]
+    broker_command_ban: list = ["ban"]
+    broker_command_unban: list = ["unban"]
+    broker_command_p_ls: list = ["完整清单"]
+
+    def __init__(self, *arg, **kwarg) -> None:
+        super().__init__(*arg, **kwarg)
+        if self.broker_command_add == []:
+            self.broker_command_add = ["订阅"]
+        if self.broker_command_rm == []:
+            self.broker_command_rm = ["退订"]
+        if self.broker_command_ls == []:
+            self.broker_command_ls = ["清单"]
+        if self.broker_command_ban == []:
+            self.broker_command_ban = ["ban"]
+        if self.broker_command_unban == []:
+            self.broker_command_unban = ["unban"]
+        if self.broker_command_p_ls == []:
+            self.broker_command_p_ls = ["完整清单"]
 
     class Config:
         extra = "ignore"

@@ -47,17 +47,6 @@ def _construct_message(info: INFO_TYPE) -> Message:
     return None
 
 
-def beijing2UTC(hour: Union[str, int]):
-    '''
-    FIXME:临时用着，等上游apscheduler修好了就删
-    '''
-    if isinstance(hour, int):
-        hour -= 8
-        if hour < 0:
-            hour += 24
-    return hour
-
-
 class topic:
     '''
     订阅的基本单元，所有操作最终都由topic对象执行
@@ -93,6 +82,7 @@ class topic:
     cron: Dict[Any, Any] = None
     immediately: bool = False
 
+    hide: bool = False
     no_check: bool = False  # 插件内部使用，不建议在外部调用时使用
 
     info: Message = None
@@ -108,6 +98,11 @@ class topic:
     subscriber: Dict[str, List[Union[str, int]]] = None
     subscriber_callable: List[Callable[[Any], Any]] = None
 
+    black_list: Dict[str, List[Union[str, int]]] = None
+
+    def __str__(self) -> str:
+        return self.name if self.name != "" else self.title
+
     def pack(self):
         '''
         将topic对象打包成dict，方便保存数据
@@ -117,8 +112,10 @@ class topic:
             "title": self.title,
             "aliases": self.aliases,
             "immediately": self.immediately,
+            "hide": self.hide,
             "no_check": self.no_check,
-            "subscriber": self.subscriber
+            "subscriber": self.subscriber,
+            "black_list": self.black_list
         }
         package.update(self.cron)
         return package
@@ -130,8 +127,10 @@ class topic:
         name: str = "",
         aliases: List[str] = None,
         immediately: bool = False,
+        hide: bool = False,
         no_check: bool = False,
         subscriber: Dict[str, List[Union[str, int]]] = None,
+        black_list: Dict[str, List[Union[str, int]]] = None,
         **kwarg
     ) -> None:
         '''
@@ -151,14 +150,16 @@ class topic:
         self.name = name
         self.aliases = aliases if aliases is not None else []
         self.immediately = immediately
+        self.hide = hide
         self.no_check = no_check
         self.subscriber = subscriber if subscriber is not None else {}
         self.subscriber_callable = []
+        self.black_list = black_list if black_list is not None else {}
         if not immediately:
             self.job = scheduler.add_job(
                 self.send,
                 "cron",
-                hour=beijing2UTC(hour),
+                hour=hour,
                 **kwarg
             )
             self.cron = kwarg
@@ -171,6 +172,7 @@ class topic:
         name: str = "",
         aliases: List[str] = None,
         immediately: bool = False,
+        hide: bool = False,
         no_check: bool = False,
         **kwarg
     ):
@@ -186,7 +188,7 @@ class topic:
                 self.job = scheduler.add_job(
                     self.send,
                     "cron",
-                    hour=beijing2UTC(hour),
+                    hour=hour,
                     **kwarg
                 )
                 self.cron = kwarg
@@ -200,6 +202,7 @@ class topic:
             self.job.pause()
             self.cron = {}
         self.immediately = immediately
+        self.hide = hide
         self.no_check = no_check
         logger.debug(f"{self.name if self.name != '' else self.title} 更新完成")
 
@@ -240,6 +243,8 @@ class topic:
             subscriber: 订阅者
             type_:      订阅者类型，现在一般为"users"或"groups"
         '''
+        if not self.is_exposed(subscriber, type_):
+            return False
         logger.debug(f"{self.name if self.name != '' else self.title} 被订阅")
         if isinstance(subscriber, Callable):
             if subscriber in self.subscriber_callable:
@@ -251,7 +256,7 @@ class topic:
         subscriber = str(subscriber)
         if subscriber in self.subscriber[type_]:
             return False
-        self.subscriber[type_].append(str(subscriber))
+        self.subscriber[type_].append(subscriber)
         return True
 
     def remove(
@@ -280,6 +285,68 @@ class topic:
         self.subscriber[type_].remove(subscriber)
         return True
 
+    def is_exposed(
+        self,
+        subscriber: Union[str, int] = None,
+        type_: str = None,
+    ) -> bool:
+
+        '''
+        检查是否可以向该用户/群暴露本服务
+
+        参数:
+            subscriber: 订阅者
+            type_:      订阅者类型，现在一般为"users"或"groups"
+        '''
+        if type_ == "callable":
+            return True
+        if subscriber is None or type_ is None:
+            return self.hide
+        if type_ in self.black_list and subscriber in self.black_list[type_]:
+            return False
+        return True
+
+    def ban(
+        self,
+        subscriber: Union[str, int],
+        type_: str
+    ) -> bool:
+        '''
+        ban操作的最终执行方法
+
+        参数:
+            subscriber: 订阅者
+            type_:      订阅者类型，现在一般为"users"或"groups"
+        '''
+        if type_ not in self.black_list:
+            self.black_list[type_] = []
+        subscriber = str(subscriber)
+        if subscriber in self.black_list[type_]:
+            return False
+        self.black_list[type_].append(subscriber)
+        self.remove(subscriber, type_)
+        return True
+
+    def unban(
+        self,
+        subscriber: Union[str, int],
+        type_: str
+    ) -> bool:
+        '''
+        解ban操作的最终执行方法
+
+        参数:
+            subscriber: 订阅者
+            type_:      订阅者类型，现在一般为"users"或"groups"
+        '''
+        if type_ not in self.black_list:
+            return False
+        subscriber = str(subscriber)
+        if subscriber not in self.black_list[type_]:
+            return False
+        self.black_list[type_].remove(subscriber)
+        return True
+
     async def send(self):
         '''
         推送内容方法
@@ -295,10 +362,6 @@ class topic:
         logger.info(
             f"{self.name if self.name != '' else self.title} 正在推送"
         )
-        # print(nonebot.get_bots())
-        # print(4)
-        # print(nonebot.get_bot())
-        # print(self.info)
         if "users" in self.subscriber:
             for user in self.subscriber["users"]:
                 await nonebot.get_bot().send_private_msg(
